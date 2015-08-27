@@ -14,19 +14,8 @@ var inFile = arguments[2];
 //output filename should be second argument
 var outFile = arguments[3];
 
-var fs = require('fs');
-
-//create outFile and write first line in jscad file, declaring function and array
-fs.writeFile(outFile, 'function main() {\n\tvar a = [', function (err) {
-  if (err) throw err;
-  });
-
-//function for appending data to output jscad file
-function printToFile(fileName, text) {
-  fs.appendFile(fileName, text, function (err) {
-  if (err) throw err;
-  });
-};
+//create output string with first line of jscad file, declaring main() function and array
+var jscadCode = 'function main() {\n\tvar a = [';
 
 //this will use the getPixels module
 var getPixels = require('get-pixels')
@@ -56,20 +45,26 @@ getPixels(inFile, function(err, pixels) {
   		rowArray[j] = 0.5 + Math.round(pixHeight * 10) / 10;
   		}
   	
-  	//append row array to jscad file
-  	printToFile(outFile, '[' + rowArray + ']');
+  	//append row array to jscad code
+  	jscadCode += '[' + rowArray + ']');
 
   	//add comma if not the last row in the array
   	if (i < (pixels.shape[0] - 1))
-  		printToFile(outFile, ',\n');
+  		jscadCode += (outFile, ',\n');
   }
 
   //append last bracket + semicolon and newline
-  printToFile(outFile, '];\n');
+  jscadCode += '];\n');
 
   //append code to create cubes of different heights based on the values in the array
-  var openScadCube = "\n\tvar b = [];\n\n\tfor (var i = 0; i < " + pixels.shape[0] + "; i++) {\n\t\tfor (var j = 0; j < " + pixels.shape[1] + "; j++) {\n\t\t\tb.push(cube({size: [1,1,a[i][j]], center:false}).translate([-i,j,0]));\n\t\t}\n\t}\n\n\treturn b;\n}";
-  printToFile(outFile,openScadCube);
+  jscadCode += "\n\tvar b = [];\n\n\tfor (var i = 0; i < " + pixels.shape[0] + "; i++) {\n\t\tfor (var j = 0; j < " + pixels.shape[1] + "; j++) {\n\t\t\tb.push(cube({size: [1,1,a[i][j]], center:false}).translate([-i,j,0]));\n\t\t}\n\t}\n\n\treturn b;\n}";
+
+  var fs = require('fs');
+
+  //create outFile and write jscadCode to file
+  fs.writeFile(outFile, jscadCode, function (err) {
+    if (err) throw err;
+  });
 
 })
 
